@@ -3,14 +3,14 @@
 const serveStatic = require('serve-static');
 const express = require('express');
 const app = express();
-// const cors = require('cors');
+const cors = require('cors');
 // app.use(express.static("public"));
 
 // app.get('', (req, res) => {
 //     res.sendFile("index.html")
 // });
-// app.use(cors());
-// app.options('*', cors());
+app.use(cors());
+app.options('*', cors());
 
 var history = require('connect-history-api-fallback');
 
