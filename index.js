@@ -1,9 +1,12 @@
 //jshint: esversion 6
 
 const serveStatic = require('serve-static');
+const sslRedirect = require('heroku-ssl-redirect').default;
 const express = require('express');
 const app = express();
 const cors = require('cors');
+
+app.use(sslRedirect());
 // app.use(express.static("public"));
 
 // app.get('', (req, res) => {
