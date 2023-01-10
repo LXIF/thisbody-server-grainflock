@@ -42,6 +42,11 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('play', payload);
     });
 
+    socket.on('midi', (payload) => {
+        console.log(payload);
+        socket.broadcast.emit('midi', payload);
+    });
+
     // socket.on('breath', (breath) => {
     //     socket.broadcast.emit('breath', breath);
     // });
