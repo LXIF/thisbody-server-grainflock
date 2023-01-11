@@ -3,6 +3,30 @@
 const serveStatic = require('serve-static');
 const sslRedirect = require('heroku-ssl-redirect').default;
 const express = require('express');
+const multer = require('multer');
+const fs = require('fs');
+const grainStorage = multer.diskStorage({
+    filename: function (req, file, cb) {
+      cb(null, file.originalname)
+    },
+    destination: function (req, file, cb) {
+      cb(null, './samples/grainflocker')
+    },
+  });
+const welcomeStorage = multer.diskStorage({
+    filename: function (req, file, cb) {
+      cb(null, file.originalname)
+    },
+    destination: function (req, file, cb) {
+      cb(null, './samples/welcome')
+    },
+  });
+// const upload = multer( {
+//     dest: './uploads',
+    
+// } );
+const uploadGrainSamples = multer( { storage: grainStorage } );
+const uploadWelcome = multer( { storage: welcomeStorage } );
 const app = express();
 const cors = require('cors');
 
@@ -15,9 +39,67 @@ app.use(sslRedirect());
 app.use(cors());
 app.options('*', cors());
 
+app.use(express.json());
+
+app.get('/sampleslist',(req,res) => {
+    let samplesList;
+    fs.readdir('./samples/grainflocker', (err, files) => {
+        samplesList = [...files]
+        res.send({
+            list: files
+        });
+    });
+});
+
+
+app.post('/grain', uploadGrainSamples.any('sounds'), (req,res) => {
+    res.send({ message: 'omnomnom' });
+});
+
+app.post('/welcome', uploadWelcome.single('sounds'), (req,res) => {
+    res.send({ message: 'omnomnom' });
+});
+
+app.get('/welcomesound', (req,res) => {
+    fs.readdir('./samples/welcome', (err, files) => {
+        res.send({
+            name: files[0]
+        });
+    });
+});
+
+app.get('/welcome', (req,res) => {
+    let path;
+    fs.readdir(__dirname + '/samples/welcome', (err, files) => {
+        path = __dirname + '/samples/welcome/' + files[0];
+        res.sendFile(path)
+    });
+});
+
+app.post('/deletegrain/:name', (req,res) => {
+    path = __dirname + '/samples/grainflocker/' + req.params.name;
+    fs.unlink(path, (err) => {
+        if(!err) {
+            res.send({
+                message: 'deleted ' + req.params.name
+            });
+        } else {
+            res.send({
+                message: err
+            });
+        }
+    });
+});
+
+app.get('/grain/:name', (req,res) => {
+    path = __dirname + '/samples/grainflocker/' + req.params.name
+    res.sendFile(path);
+});
+
 var history = require('connect-history-api-fallback');
 
 app.use(history());
+
 app.use(serveStatic(__dirname + '/dist'));
 
 const http = require('http').createServer(app);
@@ -43,7 +125,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('midi', (payload) => {
-        console.log(payload);
         socket.broadcast.emit('midi', payload);
     });
 
