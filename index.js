@@ -25,8 +25,19 @@ const welcomeStorage = multer.diskStorage({
 //     dest: './uploads',
     
 // } );
+
+function welcomeFileFilter(req, file, cb) {
+    const files = fs.readdirSync(__dirname + '/samples/welcome');
+    if(files) {
+        for(const file of files) {
+            fs.unlinkSync(__dirname + '/samples/welcome/' + file)
+        }
+    }
+    cb(null, true)
+}
+
 const uploadGrainSamples = multer( { storage: grainStorage } );
-const uploadWelcome = multer( { storage: welcomeStorage } );
+const uploadWelcome = multer( { storage: welcomeStorage, fileFilter: welcomeFileFilter } );
 const app = express();
 const cors = require('cors');
 
